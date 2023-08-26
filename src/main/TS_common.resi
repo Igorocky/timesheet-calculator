@@ -3,3 +3,4 @@ let getSpaceSeparatedValuesAsArray: string => array<string>
 let rightPad: (~content:string, ~char:string, ~totalLen:int) => string
 let leftPad: (~content:string, ~char:string, ~totalLen:int) => string
 let floatToCurrencyStr: float => string
+let floatParse: string => option<float>

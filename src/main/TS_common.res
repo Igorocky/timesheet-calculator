@@ -32,3 +32,12 @@ let leftPad = (~content:string, ~char:string, ~totalLen:int):string => {
 let floatToCurrencyStr = (amount:float):string => {
     amount->Js.Float.toFixedWithPrecision(~digits=2)
 }
+
+let floatRegex = %re("/^\d+(\.\d+)?$/")
+let floatParse = (str:string):option<float> => {
+    if (floatRegex->Js.Re.test_(str)) {
+        str->Belt_Float.fromString
+    } else {
+        None
+    }
+}

@@ -98,10 +98,10 @@ let make = () => {
                 if (tsLog->Js_array2.length == 0) {
                     openInfoDialog(~modalRef, ~text=`The timesheet is empty.`, ())
                 } else {
-                    let regularWorkDurationHrsOpt = regularWorkDurationHrsStr->Belt_Float.fromString
-                    let regularRatePerHourOpt = regularRatePerHourStr->Belt_Float.fromString
-                    let overtimeRatePerHourOpt = overtimeRatePerHourStr->Belt_Float.fromString
-                    let weekendRatePerHourOpt = weekendRatePerHourStr->Belt_Float.fromString
+                    let regularWorkDurationHrsOpt = regularWorkDurationHrsStr->floatParse
+                    let regularRatePerHourOpt = regularRatePerHourStr->floatParse
+                    let overtimeRatePerHourOpt = overtimeRatePerHourStr->floatParse
+                    let weekendRatePerHourOpt = weekendRatePerHourStr->floatParse
                     
                     let hasErr = ref(false)
                     if (regularWorkDurationHrsOpt->Belt.Option.isNone) {
