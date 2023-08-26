@@ -1,6 +1,6 @@
 {
-  "short_name": "FE Template",
-  "name": "Front End Template",
+  "short_name": "Timesheet Calculator",
+  "name": "Timesheet Calculator",
   "icons": [
     {
       "src": "favicon.ico",
