@@ -3,6 +3,7 @@ open Expln_React_render
 open Expln_React_Mui
 open Expln_React_Modal
 open Expln_utils_promise
+open Expln_loc_stor_utils
 open TS_model
 open TS_parser
 
@@ -32,10 +33,54 @@ let setLog = (st,arrOpt) => {
     }
 }
 
+let getLocStorKey = subKey => {
+    "timesheets." ++ subKey
+}
+
 @react.component
 let make = () => {
     let modalRef = useModalRef()
     let (state, setState) = React.useState(makeInitialState)
+
+    let (regularWorkDurationHrsStr, setRegularWorkDurationHrsStr) = useStateFromLocalStorageStr(
+        ~key=getLocStorKey("regularWorkDurationHrsStr"), ~default=""
+    )
+    let (regularWorkDurationHrsStrErr, setRegularWorkDurationHrsStrErr) = React.useState(() => false)
+
+    let (regularRatePerHourStr, setRegularRatePerHourStr) = useStateFromLocalStorageStr(
+        ~key=getLocStorKey("regularRatePerHourStr"), ~default=""
+    )
+    let (regularRatePerHourStrErr, setRegularRatePerHourStrErr) = React.useState(() => false)
+
+    let (overtimeRatePerHourStr, setOvertimeRatePerHourStr) = useStateFromLocalStorageStr(
+        ~key=getLocStorKey("overtimeRatePerHourStr"), ~default=""
+    )
+    let (overtimeRatePerHourStrErr, setOvertimeRatePerHourStrErr) = React.useState(() => false)
+
+    let (weekendRatePerHourStr, setWeekendRatePerHourStr) = useStateFromLocalStorageStr(
+        ~key=getLocStorKey("weekendRatePerHourStr"), ~default=""
+    )
+    let (weekendRatePerHourStrErr, setWeekendRatePerHourStrErr) = React.useState(() => false)
+
+    let actRegularWorkDurationHrsStrChanged = str => {
+        setRegularWorkDurationHrsStr(_ => str)
+        setRegularWorkDurationHrsStrErr(_ => false)
+    }
+
+    let actRegularRatePerHourStrChanged = str => {
+        setRegularRatePerHourStr(_ => str)
+        setRegularRatePerHourStrErr(_ => false)
+    }
+
+    let actOvertimeRatePerHourStrChanged = str => {
+        setOvertimeRatePerHourStr(_ => str)
+        setOvertimeRatePerHourStrErr(_ => false)
+    }
+
+    let actWeekendRatePerHourStrChanged = str => {
+        setWeekendRatePerHourStr(_ => str)
+        setWeekendRatePerHourStrErr(_ => false)
+    }
 
     let actTsLogTextChanged = str => {
         setState(setLogText(_, str))
@@ -56,6 +101,70 @@ let make = () => {
                 }
             }
         }
+    }
+
+    let rndParam = (~name:string, ~value:string, ~onChange:string=>unit) => {
+        switch state.tsLog {
+            | None => {
+                <TextField
+                    label=name
+                    size=#small
+                    style=ReactDOM.Style.make(~width="185px", ())
+                    value
+                    onChange=evt2str(onChange)
+                />
+            }
+            | Some(_) => {
+                <Row>
+                    {React.string(name ++ ": ")}
+                    {React.string(value)}
+                </Row>
+            }
+        }
+    }
+
+    let rndParams = () => {
+        let display = switch state.tsLog {
+            | None => Some("none")
+            | Some(_) => None
+        }
+        let delimeter = 
+            <span style=ReactDOM.Style.make(~display?, ())>
+                {React.string(" ; ")}
+            </span>
+        <Row>
+            {
+                rndParam(
+                    ~name="Regular work duration, hours", 
+                    ~value=regularWorkDurationHrsStr, 
+                    ~onChange=actRegularWorkDurationHrsStrChanged
+                )
+            }
+            delimeter
+            {
+                rndParam(
+                    ~name="Regular rate per hour", 
+                    ~value=regularRatePerHourStr, 
+                    ~onChange=actRegularRatePerHourStrChanged
+                )
+            }
+            delimeter
+            {
+                rndParam(
+                    ~name="Overtime rate per hour", 
+                    ~value=overtimeRatePerHourStr, 
+                    ~onChange=actOvertimeRatePerHourStrChanged
+                )
+            }
+            delimeter
+            {
+                rndParam(
+                    ~name="Weekend rate per hour", 
+                    ~value=weekendRatePerHourStr, 
+                    ~onChange=actWeekendRatePerHourStrChanged
+                )
+            }
+        </Row>
     }
 
     let rndLogRecordHeader = () => {
@@ -96,10 +205,11 @@ let make = () => {
         switch state.tsLog {
             | None => {
                 <Col>
+                    {rndParams()}
                     <TextField
                         label="Timesheet data"
                         size=#small
-                        style=ReactDOM.Style.make(~width="500px", ())
+                        style=ReactDOM.Style.make(~width="378px", ())
                         autoFocus=true
                         multiline=true
                         maxRows=10
@@ -112,6 +222,7 @@ let make = () => {
             | Some(tsLog) => {
                 <Col>
                     <Button onClick={_=>actTsLogChanged(None)} variant=#contained > {React.string("Edit")} </Button>
+                    {rndParams()}
                     <table 
                         style=ReactDOM.Style.make(
                             ~borderCollapse="collapse", 
