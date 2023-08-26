@@ -11,3 +11,20 @@ let multilineTextToNonEmptyLines = splitByRegex(_, newLineRegex)
 let whitespaceDelimRegex = %re("/[\s\n\r]/")
 let getSpaceSeparatedValuesAsArray = splitByRegex(_, whitespaceDelimRegex)
 
+let rightPad = (~content:string, ~char:string, ~totalLen:int):string => {
+    let contentLen = content->Js_string2.length
+    if (totalLen <= contentLen) {
+        content
+    } else {
+        content ++ Js_string2.repeat(char, totalLen - contentLen)
+    }
+}
+
+let leftPad = (~content:string, ~char:string, ~totalLen:int):string => {
+    let contentLen = content->Js_string2.length
+    if (totalLen <= contentLen) {
+        content
+    } else {
+        Js_string2.repeat(char, totalLen - contentLen) ++ content
+    }
+}

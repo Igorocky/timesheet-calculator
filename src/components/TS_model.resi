@@ -9,3 +9,6 @@ type tsLogRecord = {
     isHoliday:bool,
     durMinutes: int,
 }
+
+let dateToString: date => string
+let minutesToDurStr: int => string
