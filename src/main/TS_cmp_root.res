@@ -4,12 +4,13 @@ open Expln_React_Mui
 open Expln_React_Modal
 open Expln_utils_promise
 open Expln_loc_stor_utils
+open TS_common
 open TS_model
 open TS_parser
 
 type state = {
     tsLogText:string,
-    tsLog:option<array<tsLogRecord>>,
+    tsLog:option<array<(tsLogRecord,tsCalc)>>,
 }
 
 let makeInitialState = () => {
@@ -97,7 +98,52 @@ let make = () => {
                 if (tsLog->Js_array2.length == 0) {
                     openInfoDialog(~modalRef, ~text=`The timesheet is empty.`, ())
                 } else {
-                    actTsLogChanged(Some(tsLog))
+                    let regularWorkDurationHrsOpt = regularWorkDurationHrsStr->Belt_Float.fromString
+                    let regularRatePerHourOpt = regularRatePerHourStr->Belt_Float.fromString
+                    let overtimeRatePerHourOpt = overtimeRatePerHourStr->Belt_Float.fromString
+                    let weekendRatePerHourOpt = weekendRatePerHourStr->Belt_Float.fromString
+                    
+                    let hasErr = ref(false)
+                    if (regularWorkDurationHrsOpt->Belt.Option.isNone) {
+                        setRegularWorkDurationHrsStrErr(_ => true)
+                        hasErr := true
+                    }
+                    if (regularRatePerHourOpt->Belt.Option.isNone) {
+                        setRegularRatePerHourStrErr(_ => true)
+                        hasErr := true
+                    }
+                    if (overtimeRatePerHourOpt->Belt.Option.isNone) {
+                        setOvertimeRatePerHourStrErr(_ => true)
+                        hasErr := true
+                    }
+                    if (weekendRatePerHourOpt->Belt.Option.isNone) {
+                        setWeekendRatePerHourStrErr(_ => true)
+                        hasErr := true
+                    }
+
+                    if (!hasErr.contents) {
+                        let tsCalc = tsLog->Js_array2.reduce(
+                            (res,tsLogRec) => {
+                                let len = res->Js_array2.length
+                                let prevSum = if (len == 0) {0.0} else {res[len-1].sum}
+                                res->Js_array2.push(
+                                    tsCalculate(
+                                        ~tsLogRec,
+                                        ~prevSum,
+                                        ~regularWorkDurationHrs=regularWorkDurationHrsOpt->Belt.Option.getExn,
+                                        ~regularRatePerHour=regularRatePerHourOpt->Belt.Option.getExn,
+                                        ~overtimeRatePerHour=overtimeRatePerHourOpt->Belt.Option.getExn,
+                                        ~weekendRatePerHour=weekendRatePerHourOpt->Belt.Option.getExn,
+                                    )
+                                )->ignore
+                                res
+                            },
+                            []
+                        )
+                        actTsLogChanged(Some(
+                            tsLog->Js_array2.mapi((tsLogRec,i) => (tsLogRec,tsCalc[i]))
+                        ))
+                    }
                 }
             }
         }
@@ -176,12 +222,18 @@ let make = () => {
                 {React.string("Type of day")}
             </th>
             <th className="table-single-border timesheet-cell">
-                {React.string("Time")}
+                {React.string("Amount")}
+            </th>
+            <th className="table-single-border timesheet-cell">
+                {React.string("Sum")}
+            </th>
+            <th className="table-single-border timesheet-cell">
+                {React.string("Calculation")}
             </th>
         </tr>
     }
 
-    let rndLogRecord = (~logRec:tsLogRecord, ~id:int) => {
+    let rndLogRecord = (~id:int, ~logRec:tsLogRecord, ~calcData:tsCalc) => {
         <tr key={id->Belt_Int.toString} className="highlighted-on-hover">
             <td className="table-single-border timesheet-cell">
                 {logRec.date->dateToString->React.string}
@@ -196,7 +248,13 @@ let make = () => {
                 }
             </td>
             <td className="table-single-border timesheet-cell">
-                {logRec.durMinutes->minutesToDurStr->React.string}
+                {calcData.amount->floatToCurrencyStr->React.string}
+            </td>
+            <td className="table-single-border timesheet-cell">
+                {calcData.sum->floatToCurrencyStr->React.string}
+            </td>
+            <td className="table-single-border timesheet-cell">
+                {calcData.formula->React.string}
             </td>
         </tr>
     }
@@ -235,7 +293,11 @@ let make = () => {
                             {rndLogRecordHeader()}
                         </thead>
                         <tbody>
-                            {tsLog->Js.Array2.mapi((logRec,i) => rndLogRecord(~logRec, ~id=i))->React.array}
+                            {
+                                tsLog->Js.Array2.mapi(((logRec,calcData),i) => {
+                                    rndLogRecord(~id=i, ~logRec, ~calcData)
+                                })->React.array
+                            }
                         </tbody>
                     </table>
                 </Col>
