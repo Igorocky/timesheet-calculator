@@ -7,8 +7,8 @@ describe("parseTimeSheet", _ => {
         //given
         let tsWithHeader = `
             date	is_holiday	hours	minutes
-            2023-08-25	N	3	15
-            2023-08-26	Y	5	0
+            2023-08-25	3	15
+            2023-08-26	5	0
         `
 
         //when
@@ -18,8 +18,8 @@ describe("parseTimeSheet", _ => {
         assertEq(
             tsLog,
             Ok([
-                {date:{year:2023,month:8,day:25},isHoliday:false,durMinutes:195},
-                {date:{year:2023,month:8,day:26},isHoliday:true,durMinutes:300}
+                {date:{year:2023,month:8,day:25},durMinutes:195},
+                {date:{year:2023,month:8,day:26},durMinutes:300}
             ])
         )
     })
@@ -27,8 +27,8 @@ describe("parseTimeSheet", _ => {
     it("parses without header", _ => {
         //given
         let tsWithHeader = `
-            2023-08-25	N	3	15
-            2023-08-26	Y	0	50
+            2023-08-25	3	15
+            2023-08-26	0	50
         `
 
         //when
@@ -38,8 +38,8 @@ describe("parseTimeSheet", _ => {
         assertEq(
             tsLog,
             Ok([
-                {date:{year:2023,month:8,day:25},isHoliday:false,durMinutes:195},
-                {date:{year:2023,month:8,day:26},isHoliday:true,durMinutes:50}
+                {date:{year:2023,month:8,day:25},durMinutes:195},
+                {date:{year:2023,month:8,day:26},durMinutes:50},
             ])
         )
     })

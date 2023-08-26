@@ -79,8 +79,8 @@ let make = () => {
             </td>
             <td className="table-single-border timesheet-cell">
                 {
-                    if (logRec.isHoliday) {
-                        React.string("holiday")
+                    if (logRec.date->dateIsWeekend) {
+                        React.string("weekend")
                     } else {
                         React.null
                     }

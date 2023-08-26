@@ -37,28 +37,22 @@ let dateFromString = (str:string):option<date> => {
 
 let tsLogRecordFromString = (str:string): result<tsLogRecord,string> => {
     let parts = str->getSpaceSeparatedValuesAsArray
-    if (parts->Js_array2.length != 4) {
-        Error(`Expected 4 values but got ${parts->Js_array2.length->Belt.Int.toString} in the record: '${str}'`)
+    if (parts->Js_array2.length != 3) {
+        Error(`Expected 3 values but got ${parts->Js_array2.length->Belt.Int.toString} in the record: '${str}'`)
     } else {
         switch dateFromString(parts[0]) {
             | None => Error(`Cannot parse '${parts[0]}' as date in the record: '${str}'`)
             | Some(date) => {
-                if (parts[1] !== "Y" && parts[1] !== "N") {
-                    Error(`Expected Y or N for the 'is_holiday' part but got ${parts[1]} in the record: '${str}'`)
-                } else {
-                    let isHoliday = parts[1] === "Y"
-                    switch parts[2]->Belt_Int.fromString {
-                        | None => Error(`Cannot parse '${parts[2]}' as hours in the record: '${str}'`)
-                        | Some(hours) => {
-                            switch parts[3]->Belt_Int.fromString {
-                                | None => Error(`Cannot parse '${parts[3]}' as minutes in the record: '${str}'`)
-                                | Some(minutes) => {
-                                    Ok({
-                                        date,
-                                        isHoliday,
-                                        durMinutes: hours*60+minutes,
-                                    })
-                                }
+                switch parts[1]->Belt_Int.fromString {
+                    | None => Error(`Cannot parse '${parts[1]}' as hours in the record: '${str}'`)
+                    | Some(hours) => {
+                        switch parts[2]->Belt_Int.fromString {
+                            | None => Error(`Cannot parse '${parts[2]}' as minutes in the record: '${str}'`)
+                            | Some(minutes) => {
+                                Ok({
+                                    date,
+                                    durMinutes: hours*60+minutes,
+                                })
                             }
                         }
                     }

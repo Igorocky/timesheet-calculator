@@ -6,9 +6,9 @@ type date = {
 
 type tsLogRecord = {
     date: date,
-    isHoliday:bool,
     durMinutes: int,
 }
 
+let dateIsWeekend: date => bool
 let dateToString: date => string
 let minutesToDurStr: int => string

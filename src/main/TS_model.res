@@ -8,8 +8,17 @@ type date = {
 
 type tsLogRecord = {
     date: date,
-    isHoliday:bool,
     durMinutes: int,
+}
+
+let dateIsWeekend = (date:date):bool => {
+    let dayOfWeek = Js.Date.makeWithYMD(
+        ~year=date.year->Belt.Int.toFloat, 
+        ~month=(date.month-1)->Belt.Int.toFloat, 
+        ~date=date.day->Belt.Int.toFloat,
+        ()
+    )->Js.Date.getDay->Belt.Float.toInt
+    dayOfWeek == 0 || dayOfWeek == 6
 }
 
 let dateToString = date => {
