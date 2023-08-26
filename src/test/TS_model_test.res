@@ -10,3 +10,63 @@ describe("dateIsWeekend", _ => {
         assertEq( dateFromString("2023-08-28")->Belt.Option.getExn->dateIsWeekend, false )
     })
 })
+
+describe("tsCalculate", _ => {
+    it("returns correct results", _ => {
+        //given
+        let tsData = `
+            2023-09-01	6	30
+            2023-09-02	3	10
+            2023-09-03	0	0
+            2023-09-04	8	0
+            2023-09-05	10	0
+            2023-09-06	10	20
+            2023-09-07	0	0
+            2023-09-08	0	0
+            2023-09-09	6	0
+            2023-09-10	10	40
+            2023-09-11	8	0
+            2023-09-12	0	0
+        `
+        let tsLog = parseTimesheet(tsData)->Belt.Result.getExn
+
+        //when
+        let tsCalc = tsLog->Js_array2.reduce(
+            (res,tsLogRec) => {
+                let len = res->Js_array2.length
+                let prevSum = if (len == 0) {0.0} else {res[len-1].sum}
+                res->Js_array2.push(
+                    tsCalculate(
+                        ~tsLogRec,
+                        ~prevSum,
+                        ~regularWorkDurationHrs=8.0,
+                        ~regularRatePerHour=7.0,
+                        ~overtimeRatePerHour=9.0,
+                        ~weekendRatePerHour=11.0,
+                    )
+                )->ignore
+                res
+            },
+            []
+        )
+
+        //then
+        assertEq( 
+            tsCalc, 
+            [
+                {amount:45.5,formula:"45.50 = (6 hrs 30 min) * 7.00",sum:45.5},
+                {amount:34.833333333333336,formula:"34.83 = (3 hrs 10 min) * 11.00",sum:80.33333333333334},
+                {amount:0.0,formula:"",sum:80.33333333333334},
+                {amount:56.0,formula:"56.00 = (8 hrs 0 min) * 7.00",sum:136.33333333333334},
+                {amount:74.0,formula:"74.00 = (8 hrs 0 min) * 7.00 + (2 hrs 0 min) * 9.00",sum:210.33333333333334},
+                {amount:77.0,formula:"77.00 = (8 hrs 0 min) * 7.00 + (2 hrs 20 min) * 9.00",sum:287.33333333333337},
+                {amount:0.0,formula:"",sum:287.33333333333337},
+                {amount:0.0,formula:"",sum:287.33333333333337},
+                {amount:66.0,formula:"66.00 = (6 hrs 0 min) * 11.00",sum:353.33333333333337},
+                {amount:117.33333333333333,formula:"117.33 = (10 hrs 40 min) * 11.00",sum:470.6666666666667},
+                {amount:56.0,formula:"56.00 = (8 hrs 0 min) * 7.00",sum:526.6666666666667},
+                {amount:0.0,formula:"",sum:526.6666666666667}
+            ]
+        )
+    })
+})

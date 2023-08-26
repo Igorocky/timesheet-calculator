@@ -46,7 +46,7 @@ let make = () => {
     }
 
     let actCalculate = () => {
-        switch state.tsLogText->parseTimeSheet {
+        switch state.tsLogText->parseTimesheet {
             | Error(msg) => openInfoDialog(~modalRef, ~text=`Error: ${msg}`, ())
             | Ok(tsLog) => {
                 if (tsLog->Js_array2.length == 0) {

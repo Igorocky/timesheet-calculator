@@ -28,3 +28,7 @@ let leftPad = (~content:string, ~char:string, ~totalLen:int):string => {
         Js_string2.repeat(char, totalLen - contentLen) ++ content
     }
 }
+
+let floatToCurrencyStr = (amount:float):string => {
+    amount->Js.Float.toFixedWithPrecision(~digits=2)
+}

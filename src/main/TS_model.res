@@ -11,6 +11,12 @@ type tsLogRecord = {
     durMinutes: int,
 }
 
+type tsCalc = {
+    amount:float,
+    formula:string,
+    sum:float,
+}
+
 let dateIsWeekend = (date:date):bool => {
     let dayOfWeek = Js.Date.makeWithYMD(
         ~year=date.year->Belt.Int.toFloat, 
@@ -33,4 +39,61 @@ let minutesToDurStr = (minutes:int):string => {
     let hours = minutes / 60
     let minutes = mod(minutes, 60)
     hours->Belt_Int.toString ++ " hrs " ++ minutes->Belt_Int.toString ++ " min"
+}
+
+let calcAmount = (~ratePerHour:float, ~durMinutes:int):float => {
+    ratePerHour *. durMinutes->Belt.Int.toFloat /. 60.0
+}
+
+let calcAmountFormula = (~ratePerHour:float, ~durMinutes:int):string => {
+    `(${durMinutes->minutesToDurStr}) * ${ratePerHour->floatToCurrencyStr}`
+}
+
+let tsCalculate = (
+    ~tsLogRec:tsLogRecord,
+    ~prevSum:float,
+    ~regularWorkDurationHrs:float,
+    ~regularRatePerHour:float,
+    ~overtimeRatePerHour:float,
+    ~weekendRatePerHour:float,
+):tsCalc => {
+    let regularWorkDurationMinutes = (regularWorkDurationHrs *. 60.0)->Belt_Float.toInt
+    if (tsLogRec.durMinutes == 0) {
+        {
+            amount:0.0,
+            formula:"",
+            sum:prevSum,
+        }
+    } else if (tsLogRec.date->dateIsWeekend) {
+        let amount = calcAmount(~ratePerHour=weekendRatePerHour, ~durMinutes=tsLogRec.durMinutes)
+        let sum = prevSum +. amount
+        {
+            amount,
+            formula:`${floatToCurrencyStr(amount)} = ` 
+                ++ calcAmountFormula(~ratePerHour=weekendRatePerHour, ~durMinutes=tsLogRec.durMinutes),
+            sum,
+        }
+    } else if (tsLogRec.durMinutes <= regularWorkDurationMinutes) {
+        let amount = calcAmount(~ratePerHour=regularRatePerHour, ~durMinutes=tsLogRec.durMinutes)
+        let sum = prevSum +. amount
+        {
+            amount,
+            formula:`${floatToCurrencyStr(amount)} = ` 
+                ++ calcAmountFormula(~ratePerHour=regularRatePerHour, ~durMinutes=tsLogRec.durMinutes),
+            sum,
+        }
+    } else {
+        let overtimeDurMinutes = tsLogRec.durMinutes - regularWorkDurationMinutes
+        let amount = calcAmount(~ratePerHour=regularRatePerHour, ~durMinutes=regularWorkDurationMinutes)
+            +. calcAmount(~ratePerHour=overtimeRatePerHour, ~durMinutes=overtimeDurMinutes)
+        let sum = prevSum +. amount
+        {
+            amount,
+            formula:`${floatToCurrencyStr(amount)} = ` 
+                ++ calcAmountFormula(~ratePerHour=regularRatePerHour, ~durMinutes=regularWorkDurationMinutes)
+                ++ " + "
+                ++ calcAmountFormula(~ratePerHour=overtimeRatePerHour, ~durMinutes=overtimeDurMinutes),
+            sum,
+        }
+    }
 }

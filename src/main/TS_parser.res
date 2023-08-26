@@ -70,7 +70,7 @@ let isHeader = (idx:int,str:string):bool => {
         })
 }
 
-let parseTimeSheet = (str:string):result<array<tsLogRecord>,string> => {
+let parseTimesheet = (str:string):result<array<tsLogRecord>,string> => {
     str->multilineTextToNonEmptyLines
         ->Js.Array2.filteri((line,i) => !isHeader(i,line))
         ->Js.Array2.reduce(

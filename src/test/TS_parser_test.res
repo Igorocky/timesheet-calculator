@@ -6,13 +6,13 @@ describe("parseTimeSheet", _ => {
     it("parses with header", _ => {
         //given
         let tsWithHeader = `
-            date	is_holiday	hours	minutes
+            date	hours	minutes
             2023-08-25	3	15
             2023-08-26	5	0
         `
 
         //when
-        let tsLog = parseTimeSheet(tsWithHeader)
+        let tsLog = parseTimesheet(tsWithHeader)
 
         //then
         assertEq(
@@ -32,7 +32,7 @@ describe("parseTimeSheet", _ => {
         `
 
         //when
-        let tsLog = parseTimeSheet(tsWithHeader)
+        let tsLog = parseTimesheet(tsWithHeader)
 
         //then
         assertEq(
