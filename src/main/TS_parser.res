@@ -76,7 +76,7 @@ let parseTimesheet = (str:string):result<array<tsLogRecord>,string> => {
         ->Js.Array2.reduce(
             (res,line) => {
                 switch res {
-                    | Error(msg) => res
+                    | Error(_) => res
                     | Ok(log) => {
                         switch line->tsLogRecordFromString {
                             | Error(msg) => Error(msg)

@@ -2,7 +2,6 @@ open Expln_React_common
 open Expln_React_render
 open Expln_React_Mui
 open Expln_React_Modal
-open Expln_utils_promise
 open Expln_loc_stor_utils
 open TS_common
 open TS_model
@@ -20,7 +19,8 @@ let makeInitialState = () => {
     }
 }
 
-let setLogText = (st,str) => {
+@warning("-27")
+let setLogText = (st, str) => {
     {
         tsLogText:str,
         tsLog:None,
@@ -149,7 +149,7 @@ let make = () => {
         }
     }
 
-    let rndParam = (~name:string, ~value:string, ~onChange:string=>unit) => {
+    let rndParam = (~name:string, ~value:string, ~error:bool, ~onChange:string=>unit) => {
         switch state.tsLog {
             | None => {
                 <TextField
@@ -158,6 +158,7 @@ let make = () => {
                     style=ReactDOM.Style.make(~width="185px", ())
                     value
                     onChange=evt2str(onChange)
+                    error
                 />
             }
             | Some(_) => {
@@ -183,7 +184,8 @@ let make = () => {
                 rndParam(
                     ~name="Regular work duration, hours", 
                     ~value=regularWorkDurationHrsStr, 
-                    ~onChange=actRegularWorkDurationHrsStrChanged
+                    ~onChange=actRegularWorkDurationHrsStrChanged,
+                    ~error=regularWorkDurationHrsStrErr,
                 )
             }
             delimeter
@@ -191,7 +193,8 @@ let make = () => {
                 rndParam(
                     ~name="Regular rate per hour", 
                     ~value=regularRatePerHourStr, 
-                    ~onChange=actRegularRatePerHourStrChanged
+                    ~onChange=actRegularRatePerHourStrChanged,
+                    ~error=regularRatePerHourStrErr,
                 )
             }
             delimeter
@@ -199,7 +202,8 @@ let make = () => {
                 rndParam(
                     ~name="Overtime rate per hour", 
                     ~value=overtimeRatePerHourStr, 
-                    ~onChange=actOvertimeRatePerHourStrChanged
+                    ~onChange=actOvertimeRatePerHourStrChanged,
+                    ~error=overtimeRatePerHourStrErr,
                 )
             }
             delimeter
@@ -207,7 +211,8 @@ let make = () => {
                 rndParam(
                     ~name="Weekend rate per hour", 
                     ~value=weekendRatePerHourStr, 
-                    ~onChange=actWeekendRatePerHourStrChanged
+                    ~onChange=actWeekendRatePerHourStrChanged,
+                    ~error=weekendRatePerHourStrErr,
                 )
             }
         </Row>
