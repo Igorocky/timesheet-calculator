@@ -11,12 +11,6 @@ let make = () => {
 
     let (item, setItem) = React.useState(() => None)
 
-    let actSendReqToBe = () => {
-        BE.method1({msg:msg})->hndRespErr(modalRef)->promiseMap(resp => {
-            openInfoDialog(~modalRef, ~title="Response from the BE", ~text=resp.len->Belt_Int.toString, ())
-        })->ignore
-    }
-
     <Col>
         {"This is the root component."->React.string}
         <Row>
@@ -27,7 +21,7 @@ let make = () => {
                 value=msg
                 onChange=evt2str(str => setMsg(_ => str))
             />
-            <Button onClick={_=>actSendReqToBe()}>
+            <Button onClick={_=>()}>
                 {"Send"->React.string}
             </Button>
         </Row>
