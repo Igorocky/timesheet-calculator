@@ -43,18 +43,38 @@ describe("tsCalculate", _ => {
         assertEq( 
             tsCalc, 
             [
-                {amount:45.5,formula:"45.50 = (6 hrs 30 min) * 7.00",sum:45.5, times: [Regular({durMinutes: 390})]},
-                {amount:34.833333333333336,formula:"34.83 = (3 hrs 10 min) * 11.00",sum:80.33333333333334, times: [Weekend({durMinutes: 190})]},
-                {amount:0.0,formula:"",sum:80.33333333333334, times: []},
-                {amount:56.0,formula:"56.00 = (8 hrs 0 min) * 7.00",sum:136.33333333333334, times: [Regular({durMinutes: 480})]},
-                {amount:74.0,formula:"74.00 = (8 hrs 0 min) * 7.00 + (2 hrs 0 min) * 9.00",sum:210.33333333333334, times: [Regular({durMinutes: 480}), Overtime({durMinutes: 120})]},
-                {amount:77.0,formula:"77.00 = (8 hrs 0 min) * 7.00 + (2 hrs 20 min) * 9.00",sum:287.33333333333337, times: [Regular({durMinutes: 480}), Overtime({durMinutes: 140})]},
-                {amount:0.0,formula:"",sum:287.33333333333337, times: []},
-                {amount:0.0,formula:"",sum:287.33333333333337, times: []},
-                {amount:66.0,formula:"66.00 = (6 hrs 0 min) * 11.00",sum:353.33333333333337, times: [Weekend({durMinutes: 360})]},
-                {amount:117.33333333333333,formula:"117.33 = (10 hrs 40 min) * 11.00",sum:470.6666666666667, times: [Weekend({durMinutes: 640})]},
-                {amount:56.0,formula:"56.00 = (8 hrs 0 min) * 7.00",sum:526.6666666666667, times: [Regular({durMinutes: 480})]},
-                {amount:0.0,formula:"",sum:526.6666666666667, times: []},
+                {amount:45.5,formula:"45.50 = (6 hrs 30 min) * 7.00",sum:45.5, 
+                    times: [Regular({durMinutes: 390, amount: 45.5, formula: "(6 hrs 30 min) * 7.00"})]},
+                {amount:34.833333333333336,formula:"34.83 = (3 hrs 10 min) * 11.00",sum:80.33333333333334, 
+                    times: [Weekend({durMinutes: 190, amount: 34.833333333333336, formula: "(3 hrs 10 min) * 11.00"})]},
+                {amount:0.0,formula:"",sum:80.33333333333334, 
+                    times: []},
+                {amount:56.0,formula:"56.00 = (8 hrs 0 min) * 7.00",sum:136.33333333333334, 
+                    times: [Regular({durMinutes: 480, amount: 56.0, formula: "(8 hrs 0 min) * 7.00"})]},
+                {amount:74.0,formula:"74.00 = (8 hrs 0 min) * 7.00 + (2 hrs 0 min) * 9.00",sum:210.33333333333334, 
+                    times: [
+                        Regular({durMinutes: 480, amount: 56.0, formula: "(8 hrs 0 min) * 7.00"}), 
+                        Overtime({durMinutes: 120, amount: 18.0, formula: "(2 hrs 0 min) * 9.00"})
+                    ]
+                },
+                {amount:77.0,formula:"77.00 = (8 hrs 0 min) * 7.00 + (2 hrs 20 min) * 9.00",sum:287.33333333333337, 
+                    times: [
+                        Regular({durMinutes: 480, amount: 56.0, formula: "(8 hrs 0 min) * 7.00"}), 
+                        Overtime({durMinutes: 140, amount: 21.0, formula: "(2 hrs 20 min) * 9.00"})
+                    ]
+                },
+                {amount:0.0,formula:"",sum:287.33333333333337, 
+                    times: []},
+                {amount:0.0,formula:"",sum:287.33333333333337, 
+                    times: []},
+                {amount:66.0,formula:"66.00 = (6 hrs 0 min) * 11.00",sum:353.33333333333337, 
+                    times: [Weekend({durMinutes: 360, amount: 66.0, formula: "(6 hrs 0 min) * 11.00"})]},
+                {amount:117.33333333333333,formula:"117.33 = (10 hrs 40 min) * 11.00",sum:470.6666666666667, 
+                    times: [Weekend({durMinutes: 640, amount: 117.33333333333333, formula: "(10 hrs 40 min) * 11.00"})]},
+                {amount:56.0,formula:"56.00 = (8 hrs 0 min) * 7.00",sum:526.6666666666667, 
+                    times: [Regular({durMinutes: 480, amount: 56.0, formula: "(8 hrs 0 min) * 7.00"})]},
+                {amount:0.0,formula:"",sum:526.6666666666667, 
+                    times: []},
             ]
         )
     })

@@ -11,10 +11,16 @@ type tsLogRecord = {
     durMinutes: int,
 }
 
+type timeTypeCalcData = {
+    durMinutes:int, 
+    amount:float, 
+    formula:string,
+}
+
 type timeType =
-    | Regular({durMinutes:int})
-    | Overtime({durMinutes:int})
-    | Weekend({durMinutes:int})
+    | Regular(timeTypeCalcData)
+    | Overtime(timeTypeCalcData)
+    | Weekend(timeTypeCalcData)
 
 type tsCalc = {
     times:array<timeType>,
@@ -55,67 +61,54 @@ let calcAmountFormula = (~ratePerHour:float, ~durMinutes:int):string => {
     `(${durMinutes->minutesToDurStr}) * ${ratePerHour->floatToCurrencyStr}`
 }
 
-let classifyTime = ( ~tsLogRec:tsLogRecord, ~regularWorkDurationMinutes:int):array<timeType> => {
+let classifyTime = ( 
+    ~tsLogRec:tsLogRecord, 
+    ~regularWorkDurationMinutes:int,
+    ~regularRatePerHour:float,
+    ~overtimeRatePerHour:float,
+    ~weekendRatePerHour:float,
+):array<timeType> => {
     if (tsLogRec.durMinutes == 0) {
         []
     } else if (tsLogRec.date->dateIsWeekend) {
-        [Weekend({durMinutes:tsLogRec.durMinutes})]
+        [
+            Weekend({
+                durMinutes:tsLogRec.durMinutes,
+                amount:calcAmount(~ratePerHour=weekendRatePerHour, ~durMinutes=tsLogRec.durMinutes),
+                formula:calcAmountFormula(~ratePerHour=weekendRatePerHour, ~durMinutes=tsLogRec.durMinutes),
+            })
+        ]
     } else if (tsLogRec.durMinutes <= regularWorkDurationMinutes) {
-        [Regular({durMinutes:tsLogRec.durMinutes})]
+        [
+            Regular({
+                durMinutes:tsLogRec.durMinutes,
+                amount:calcAmount(~ratePerHour=regularRatePerHour, ~durMinutes=tsLogRec.durMinutes),
+                formula:calcAmountFormula(~ratePerHour=regularRatePerHour, ~durMinutes=tsLogRec.durMinutes),
+            })
+        ]
     } else {
         let overtimeDurMinutes = tsLogRec.durMinutes - regularWorkDurationMinutes
         [
-            Regular({durMinutes: regularWorkDurationMinutes}),
-            Overtime({durMinutes: overtimeDurMinutes}),
+            Regular({
+                durMinutes: regularWorkDurationMinutes,
+                amount:calcAmount(~ratePerHour=regularRatePerHour, ~durMinutes=regularWorkDurationMinutes),
+                formula:calcAmountFormula(~ratePerHour=regularRatePerHour, ~durMinutes=regularWorkDurationMinutes),
+            }),
+            Overtime({
+                durMinutes: overtimeDurMinutes,
+                amount:calcAmount(~ratePerHour=overtimeRatePerHour, ~durMinutes=overtimeDurMinutes),
+                formula:calcAmountFormula(~ratePerHour=overtimeRatePerHour, ~durMinutes=overtimeDurMinutes),
+            }),
         ]
     }
 }
 
-let calcAmountForTime = (
-    ~time:timeType,
-    ~regularWorkDurationMinutes:int,
-    ~regularRatePerHour:float,
-    ~overtimeRatePerHour:float,
-    ~weekendRatePerHour:float,
-):(float,string) => {
-    switch time {
-        | Regular({durMinutes}) => {
-            (
-                calcAmount(~ratePerHour=regularRatePerHour, ~durMinutes),
-                calcAmountFormula(~ratePerHour=regularRatePerHour, ~durMinutes),
-            )
-        }
-        | Overtime({durMinutes}) => {
-            (
-                calcAmount(~ratePerHour=overtimeRatePerHour, ~durMinutes),
-                calcAmountFormula(~ratePerHour=overtimeRatePerHour, ~durMinutes),
-            )
-        }
-        | Weekend({durMinutes}) => {
-            (
-                calcAmount(~ratePerHour=weekendRatePerHour, ~durMinutes),
-                calcAmountFormula(~ratePerHour=weekendRatePerHour, ~durMinutes),
-            )
-        }
-    }
-}
-
-let calcAmountForTimes = (
-    ~times:array<timeType>,
-    ~regularWorkDurationMinutes:int,
-    ~regularRatePerHour:float,
-    ~overtimeRatePerHour:float,
-    ~weekendRatePerHour:float,
-):(float,string) => {
+let calcAmountForTimes = ( times:array<timeType> ):(float,string) => {
     times->Js_array2.reduce(
         ((amount,formula), time) => {
-            let (nextAmount,nextFormula) = calcAmountForTime(
-                ~time,
-                ~regularWorkDurationMinutes,
-                ~regularRatePerHour,
-                ~overtimeRatePerHour,
-                ~weekendRatePerHour,
-            )
+            let (nextAmount,nextFormula) = switch time {
+                | Regular({amount,formula}) | Overtime({amount,formula}) | Weekend({amount,formula}) => (amount,formula)
+            }
             if (formula == "") {
                 (nextAmount,nextFormula)
             } else {
@@ -135,14 +128,14 @@ let tsCalculateLogRec = (
     ~weekendRatePerHour:float,
 ):tsCalc => {
     let regularWorkDurationMinutes = (regularWorkDurationHrs *. 60.0)->Belt_Float.toInt
-    let times = classifyTime(~tsLogRec, ~regularWorkDurationMinutes)
-    let (amount, formula) = calcAmountForTimes(
-        ~times,
+    let times = classifyTime(
+        ~tsLogRec, 
         ~regularWorkDurationMinutes,
         ~regularRatePerHour,
         ~overtimeRatePerHour,
         ~weekendRatePerHour,
     )
+    let (amount, formula) = calcAmountForTimes( times )
     {
         times,
         amount,
