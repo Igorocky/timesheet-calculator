@@ -225,6 +225,7 @@ let make = () => {
                 </Col>
             }
             | Some(tsLog) => {
+                let (regular, overtime, weekend) = sumTimesByTypeForLog(tsLog)
                 <Col>
                     <Button onClick={_=>actTsLogChanged(None)} variant=#contained > {React.string("Edit")} </Button>
                     {rndParams()}
@@ -241,6 +242,29 @@ let make = () => {
                                 ]
                             })
                         )
+                    }
+                    {
+                        rndStaticTable(
+                            ~header=["Work type", "Duration"],
+                            ~data=[
+                                ["Regular", regular->minutesToDurStr],
+                                [
+                                    "Additional", 
+                                    (overtime+weekend)->minutesToDurStr 
+                                        ++ ` (overtime ${overtime->minutesToDurStr}, weekend ${weekend->minutesToDurStr})`
+                                ],
+                            ]
+                        )
+                    }
+                    {
+                        <span>
+                            <span style=ReactDOM.Style.make(~fontWeight="bold", ())>
+                                {React.string(`Total time: `)}
+                            </span>
+                            <span>
+                                {React.string((regular+overtime+weekend)->minutesToDurStr)}
+                            </span>
+                        </span>
                     }
                 </Col>
             }
