@@ -206,52 +206,6 @@ let make = () => {
         </Row>
     }
 
-    let rndLogRecordHeader = () => {
-        <tr>
-            <th className="table-single-border timesheet-cell">
-                {React.string("Date")}
-            </th>
-            <th className="table-single-border timesheet-cell">
-                {React.string("Type of day")}
-            </th>
-            <th className="table-single-border timesheet-cell">
-                {React.string("Amount")}
-            </th>
-            <th className="table-single-border timesheet-cell">
-                {React.string("Sum")}
-            </th>
-            <th className="table-single-border timesheet-cell">
-                {React.string("Calculation")}
-            </th>
-        </tr>
-    }
-
-    let rndLogRecord = (~id:int, ~logRec:tsLogRecord, ~calcData:tsCalc) => {
-        <tr key={id->Belt_Int.toString} className="highlighted-on-hover">
-            <td className="table-single-border timesheet-cell">
-                {logRec.date->dateToString->React.string}
-            </td>
-            <td className="table-single-border timesheet-cell">
-                {
-                    if (logRec.date->dateIsWeekend) {
-                        React.string("weekend")
-                    } else {
-                        React.null
-                    }
-                }
-            </td>
-            <td className="table-single-border timesheet-cell">
-                {calcData.amount->floatToCurrencyStr->React.string}
-            </td>
-            <td className="table-single-border timesheet-cell">
-                {calcData.sum->floatToCurrencyStr->React.string}
-            </td>
-            <td className="table-single-border timesheet-cell">
-                {calcData.formula->React.string}
-            </td>
-        </tr>
-    }
-
     let rndContent = () => {
         switch state.tsLog {
             | None => {
@@ -274,25 +228,20 @@ let make = () => {
                 <Col>
                     <Button onClick={_=>actTsLogChanged(None)} variant=#contained > {React.string("Edit")} </Button>
                     {rndParams()}
-                    <table 
-                        style=ReactDOM.Style.make(
-                            ~borderCollapse="collapse", 
-                            ~border="none", 
-                            ~padding="5px",
-                            ()
+                    {
+                        rndStaticTable(
+                            ~header=["Date", "Type of day", "Amount", "Sum", "Calculation"],
+                            ~data=tsLog->Js_array2.map(((logRec,calcData)) => {
+                                [
+                                    logRec.date->dateToString,
+                                    if (logRec.date->dateIsWeekend) { "weekend" } else { "" },
+                                    calcData.amount->floatToCurrencyStr,
+                                    calcData.sum->floatToCurrencyStr,
+                                    calcData.formula
+                                ]
+                            })
                         )
-                    >
-                        <thead>
-                            {rndLogRecordHeader()}
-                        </thead>
-                        <tbody>
-                            {
-                                tsLog->Js.Array2.mapi(((logRec,calcData),i) => {
-                                    rndLogRecord(~id=i, ~logRec, ~calcData)
-                                })->React.array
-                            }
-                        </tbody>
-                    </table>
+                    }
                 </Col>
             }
         }
@@ -302,6 +251,4 @@ let make = () => {
         {rndContent()}
         <Expln_React_Modal modalRef />
     </Col>
-    
-
 }

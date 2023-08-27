@@ -41,3 +41,38 @@ let floatParse = (str:string):option<float> => {
         None
     }
 }
+
+let rndStaticHeader = (header:array<string>):React.element => {
+    <tr>
+        {
+            header->Js_array2.mapi((cell,i) => {
+                <th className="table-single-border timesheet-cell" key={i->Belt.Int.toString} >
+                    {React.string(cell)}
+                </th>
+            })->React.array
+        }
+    </tr>
+}
+
+let rndStaticRow = (key:int, row:array<string>):React.element => {
+    <tr className="highlighted-on-hover" key={key->Belt.Int.toString} >
+        {
+            row->Js_array2.mapi((cell,i) => {
+                <td className="table-single-border timesheet-cell" key={i->Belt.Int.toString} >
+                    {React.string(cell)}
+                </td>
+            })->React.array
+        }
+    </tr>
+}
+
+let rndStaticTable = (~header:array<string>, ~data:array<array<string>>):React.element => {
+    <table style=ReactDOM.Style.make( ~borderCollapse="collapse", ~border="none", ~padding="5px", () ) >
+        <thead>
+            {rndStaticHeader(header)}
+        </thead>
+        <tbody>
+            { data->Js_array2.mapi((row,i) => rndStaticRow(i,row))->React.array }
+        </tbody>
+    </table>
+}
