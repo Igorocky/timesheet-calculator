@@ -107,11 +107,18 @@ describe("sumTimesByTypeForLog", _ => {
         )
 
         //when
-        let (regular, overtime, weekend) = sumTimesByTypeForLog(tsCalc)
+        let (
+            (regularDur,regularMnt), 
+            (overtimeDur,overtimeMnt), 
+            (weekendDur,weekendMnt)
+        ) = sumTimesByTypeForLog(tsCalc)
 
         //then
-        assertEq( regular, 390+480+480+480+480 )
-        assertEq( overtime, 120+140 )
-        assertEq( weekend, 190+360+640 )
+        assertEq( regularDur, 390+480+480+480+480 )
+        assertEq( overtimeDur, 120+140 )
+        assertEq( weekendDur, 190+360+640 )
+        assertEq( regularMnt,  45.5 +. 56.0 +. 56.0 +. 56.0 +. 56.0 )
+        assertEq( overtimeMnt, 18.0 +. 21.0 )
+        assertEq( weekendMnt, 34.833333333333336 +. 66.0 +. 117.33333333333333 )
     })
 })

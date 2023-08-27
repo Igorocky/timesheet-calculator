@@ -177,20 +177,36 @@ let tsCalculate = (
     )
 }
 
-let sumTimesByType = (times:array<timeType>):(int,int,int) => {
-    let regular = ref(0)
-    let overtime = ref(0)
-    let weekend = ref(0)
+let sumTimesByType = (times:array<timeType>):((int,float),(int,float),(int,float)) => {
+    let regularDur = ref(0)
+    let regularMnt = ref(0.0)
+    let overtimeDur = ref(0)
+    let overtimeMnt = ref(0.0)
+    let weekendDur = ref(0)
+    let weekendMnt = ref(0.0)
     times->Js_array2.forEach(time => {
         switch time {
-            | Regular({durMinutes}) => regular := regular.contents + durMinutes
-            | Overtime({durMinutes}) => overtime := overtime.contents + durMinutes
-            | Weekend({durMinutes}) => weekend := weekend.contents + durMinutes
+            | Regular({durMinutes,amount}) => {
+                regularDur := regularDur.contents + durMinutes
+                regularMnt := regularMnt.contents +. amount
+            }
+            | Overtime({durMinutes,amount}) => {
+                overtimeDur := overtimeDur.contents + durMinutes
+                overtimeMnt := overtimeMnt.contents +. amount
+            }
+            | Weekend({durMinutes,amount}) => {
+                weekendDur := weekendDur.contents + durMinutes
+                weekendMnt := weekendMnt.contents +. amount
+            }
         }
     })
-    ( regular.contents, overtime.contents, weekend.contents )
+    ( 
+        (regularDur.contents, regularMnt.contents ),
+        (overtimeDur.contents, overtimeMnt.contents ),
+        (weekendDur.contents, weekendMnt.contents ),
+    )
 }
 
-let sumTimesByTypeForLog = (tsLog:array<(tsLogRecord,tsCalc)>):(int,int,int) => {
+let sumTimesByTypeForLog = (tsLog:array<(tsLogRecord,tsCalc)>):((int,float),(int,float),(int,float)) => {
     tsLog->Js.Array2.map(((_,tsCalc)) => tsCalc.times)->Belt_Array.concatMany->sumTimesByType
 }

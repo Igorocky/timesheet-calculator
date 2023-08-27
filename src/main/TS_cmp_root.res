@@ -225,7 +225,11 @@ let make = () => {
                 </Col>
             }
             | Some(tsLog) => {
-                let (regular, overtime, weekend) = sumTimesByTypeForLog(tsLog)
+                let (
+                    (regularDur,regularMnt), 
+                    (overtimeDur,overtimeMnt), 
+                    (weekendDur,weekendMnt)
+                ) = sumTimesByTypeForLog(tsLog)
                 <Col>
                     <Button onClick={_=>actTsLogChanged(None)} variant=#contained > {React.string("Edit")} </Button>
                     {rndParams()}
@@ -245,13 +249,15 @@ let make = () => {
                     }
                     {
                         rndStaticTable(
-                            ~header=["Work type", "Duration"],
+                            ~header=["Work type", "Duration", "Amount"],
                             ~data=[
-                                ["Regular", regular->minutesToDurStr],
+                                ["Regular", regularDur->minutesToDurStr, regularMnt->floatToCurrencyStr],
                                 [
                                     "Additional", 
-                                    (overtime+weekend)->minutesToDurStr 
-                                        ++ ` (overtime ${overtime->minutesToDurStr}, weekend ${weekend->minutesToDurStr})`
+                                    (overtimeDur+weekendDur)->minutesToDurStr 
+                                        ++ ` (overtime ${overtimeDur->minutesToDurStr}, weekend ${weekendDur->minutesToDurStr})`,
+                                    (overtimeMnt +. weekendMnt)->floatToCurrencyStr
+                                        ++ ` (overtime ${overtimeMnt->floatToCurrencyStr}, weekend ${weekendMnt->floatToCurrencyStr})`,
                                 ],
                             ]
                         )
@@ -262,7 +268,17 @@ let make = () => {
                                 {React.string(`Total time: `)}
                             </span>
                             <span>
-                                {React.string((regular+overtime+weekend)->minutesToDurStr)}
+                                {React.string((regularDur+overtimeDur+weekendDur)->minutesToDurStr)}
+                            </span>
+                        </span>
+                    }
+                    {
+                        <span>
+                            <span style=ReactDOM.Style.make(~fontWeight="bold", ())>
+                                {React.string(`Total amount: `)}
+                            </span>
+                            <span>
+                                {React.string((regularMnt +. overtimeMnt +. weekendMnt)->floatToCurrencyStr)}
                             </span>
                         </span>
                     }

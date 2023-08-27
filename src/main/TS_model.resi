@@ -48,4 +48,4 @@ let tsCalculate: (
     ~weekendRatePerHour:float,
 ) => array<(tsLogRecord,tsCalc)>
 
-let sumTimesByTypeForLog: array<(tsLogRecord,tsCalc)> => (int,int,int)
+let sumTimesByTypeForLog: array<(tsLogRecord,tsCalc)> => ((int,float),(int,float),(int,float))
