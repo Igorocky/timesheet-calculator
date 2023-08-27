@@ -11,7 +11,13 @@ type tsLogRecord = {
     durMinutes: int,
 }
 
+type timeType =
+    | Regular({durMinutes:int})
+    | Overtime({durMinutes:int})
+    | Weekend({durMinutes:int})
+
 type tsCalc = {
+    times:array<timeType>,
     amount:float,
     formula:string,
     sum:float,
@@ -49,6 +55,22 @@ let calcAmountFormula = (~ratePerHour:float, ~durMinutes:int):string => {
     `(${durMinutes->minutesToDurStr}) * ${ratePerHour->floatToCurrencyStr}`
 }
 
+let classifyTime = ( ~tsLogRec:tsLogRecord, ~regularWorkDurationMinutes:int):array<timeType> => {
+    if (tsLogRec.durMinutes == 0) {
+        []
+    } else if (tsLogRec.date->dateIsWeekend) {
+        [Weekend({durMinutes:tsLogRec.durMinutes})]
+    } else if (tsLogRec.durMinutes <= regularWorkDurationMinutes) {
+        [Regular({durMinutes:tsLogRec.durMinutes})]
+    } else {
+        let overtimeDurMinutes = tsLogRec.durMinutes - regularWorkDurationMinutes
+        [
+            Regular({durMinutes: regularWorkDurationMinutes}),
+            Overtime({durMinutes: overtimeDurMinutes}),
+        ]
+    }
+}
+
 let tsCalculateLogRec = (
     ~tsLogRec:tsLogRecord,
     ~prevSum:float,
@@ -60,6 +82,7 @@ let tsCalculateLogRec = (
     let regularWorkDurationMinutes = (regularWorkDurationHrs *. 60.0)->Belt_Float.toInt
     if (tsLogRec.durMinutes == 0) {
         {
+            times: classifyTime(~tsLogRec, ~regularWorkDurationMinutes),
             amount:0.0,
             formula:"",
             sum:prevSum,
@@ -68,6 +91,7 @@ let tsCalculateLogRec = (
         let amount = calcAmount(~ratePerHour=weekendRatePerHour, ~durMinutes=tsLogRec.durMinutes)
         let sum = prevSum +. amount
         {
+            times: classifyTime(~tsLogRec, ~regularWorkDurationMinutes),
             amount,
             formula:`${floatToCurrencyStr(amount)} = ` 
                 ++ calcAmountFormula(~ratePerHour=weekendRatePerHour, ~durMinutes=tsLogRec.durMinutes),
@@ -77,6 +101,7 @@ let tsCalculateLogRec = (
         let amount = calcAmount(~ratePerHour=regularRatePerHour, ~durMinutes=tsLogRec.durMinutes)
         let sum = prevSum +. amount
         {
+            times: classifyTime(~tsLogRec, ~regularWorkDurationMinutes),
             amount,
             formula:`${floatToCurrencyStr(amount)} = ` 
                 ++ calcAmountFormula(~ratePerHour=regularRatePerHour, ~durMinutes=tsLogRec.durMinutes),
@@ -88,6 +113,7 @@ let tsCalculateLogRec = (
             +. calcAmount(~ratePerHour=overtimeRatePerHour, ~durMinutes=overtimeDurMinutes)
         let sum = prevSum +. amount
         {
+            times: classifyTime(~tsLogRec, ~regularWorkDurationMinutes),
             amount,
             formula:`${floatToCurrencyStr(amount)} = ` 
                 ++ calcAmountFormula(~ratePerHour=regularRatePerHour, ~durMinutes=regularWorkDurationMinutes)

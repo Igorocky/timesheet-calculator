@@ -9,7 +9,13 @@ type tsLogRecord = {
     durMinutes: int,
 }
 
+type timeType =
+    | Regular({durMinutes:int})
+    | Overtime({durMinutes:int})
+    | Weekend({durMinutes:int})
+
 type tsCalc = {
+    times:array<timeType>,
     amount:float,
     formula:string,
     sum:float,
