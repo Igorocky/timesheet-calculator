@@ -59,3 +59,39 @@ describe("tsCalculate", _ => {
         )
     })
 })
+
+describe("sumTimesByTypeForLog", _ => {
+    it("returns correct results", _ => {
+        //given
+        let tsData = `
+            2023-09-01	6	30
+            2023-09-02	3	10
+            2023-09-03	0	0
+            2023-09-04	8	0
+            2023-09-05	10	0
+            2023-09-06	10	20
+            2023-09-07	0	0
+            2023-09-08	0	0
+            2023-09-09	6	0
+            2023-09-10	10	40
+            2023-09-11	8	0
+            2023-09-12	0	0
+        `
+        let tsLog = parseTimesheet(tsData)->Belt.Result.getExn
+        let tsCalc = tsCalculate(
+            ~tsLog,
+            ~regularWorkDurationHrs=8.0,
+            ~regularRatePerHour=7.0,
+            ~overtimeRatePerHour=9.0,
+            ~weekendRatePerHour=11.0,
+        )
+
+        //when
+        let (regular, overtime, weekend) = sumTimesByTypeForLog(tsCalc)
+
+        //then
+        assertEq( regular, 390+480+480+480+480 )
+        assertEq( overtime, 120+140 )
+        assertEq( weekend, 190+360+640 )
+    })
+})

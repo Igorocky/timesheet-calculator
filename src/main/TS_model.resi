@@ -41,3 +41,5 @@ let tsCalculate: (
     ~overtimeRatePerHour:float,
     ~weekendRatePerHour:float,
 ) => array<(tsLogRecord,tsCalc)>
+
+let sumTimesByTypeForLog: array<(tsLogRecord,tsCalc)> => (int,int,int)
