@@ -36,7 +36,6 @@ let tsCalculateLogRec: (
 
 let tsCalculate: (
     ~tsLog:array<tsLogRecord>,
-    ~prevSum:float,
     ~regularWorkDurationHrs:float,
     ~regularRatePerHour:float,
     ~overtimeRatePerHour:float,

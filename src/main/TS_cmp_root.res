@@ -125,7 +125,6 @@ let make = () => {
                         actTsLogChanged(Some(
                             tsCalculate(
                                 ~tsLog,
-                                ~prevSum=0.0,
                                 ~regularWorkDurationHrs=regularWorkDurationHrsOpt->Belt.Option.getExn,
                                 ~regularRatePerHour=regularRatePerHourOpt->Belt.Option.getExn,
                                 ~overtimeRatePerHour=overtimeRatePerHourOpt->Belt.Option.getExn,

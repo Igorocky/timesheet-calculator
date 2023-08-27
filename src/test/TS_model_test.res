@@ -33,7 +33,6 @@ describe("tsCalculate", _ => {
         //when
         let tsCalc = tsCalculate(
             ~tsLog,
-            ~prevSum = 0.0,
             ~regularWorkDurationHrs=8.0,
             ~regularRatePerHour=7.0,
             ~overtimeRatePerHour=9.0,
