@@ -122,26 +122,15 @@ let make = () => {
                     }
 
                     if (!hasErr.contents) {
-                        let tsCalc = tsLog->Js_array2.reduce(
-                            (res,tsLogRec) => {
-                                let len = res->Js_array2.length
-                                let prevSum = if (len == 0) {0.0} else {res[len-1].sum}
-                                res->Js_array2.push(
-                                    tsCalculate(
-                                        ~tsLogRec,
-                                        ~prevSum,
-                                        ~regularWorkDurationHrs=regularWorkDurationHrsOpt->Belt.Option.getExn,
-                                        ~regularRatePerHour=regularRatePerHourOpt->Belt.Option.getExn,
-                                        ~overtimeRatePerHour=overtimeRatePerHourOpt->Belt.Option.getExn,
-                                        ~weekendRatePerHour=weekendRatePerHourOpt->Belt.Option.getExn,
-                                    )
-                                )->ignore
-                                res
-                            },
-                            []
-                        )
                         actTsLogChanged(Some(
-                            tsLog->Js_array2.mapi((tsLogRec,i) => (tsLogRec,tsCalc[i]))
+                            tsCalculate(
+                                ~tsLog,
+                                ~prevSum=0.0,
+                                ~regularWorkDurationHrs=regularWorkDurationHrsOpt->Belt.Option.getExn,
+                                ~regularRatePerHour=regularRatePerHourOpt->Belt.Option.getExn,
+                                ~overtimeRatePerHour=overtimeRatePerHourOpt->Belt.Option.getExn,
+                                ~weekendRatePerHour=weekendRatePerHourOpt->Belt.Option.getExn,
+                            )
                         ))
                     }
                 }

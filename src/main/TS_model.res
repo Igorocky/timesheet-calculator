@@ -49,7 +49,7 @@ let calcAmountFormula = (~ratePerHour:float, ~durMinutes:int):string => {
     `(${durMinutes->minutesToDurStr}) * ${ratePerHour->floatToCurrencyStr}`
 }
 
-let tsCalculate = (
+let tsCalculateLogRec = (
     ~tsLogRec:tsLogRecord,
     ~prevSum:float,
     ~regularWorkDurationHrs:float,
@@ -96,4 +96,38 @@ let tsCalculate = (
             sum,
         }
     }
+}
+
+let tsCalculate = (
+    ~tsLog:array<tsLogRecord>,
+    ~prevSum:float,
+    ~regularWorkDurationHrs:float,
+    ~regularRatePerHour:float,
+    ~overtimeRatePerHour:float,
+    ~weekendRatePerHour:float,
+):array<(tsLogRecord,tsCalc)> => {
+    tsLog->Js_array2.reduce(
+        (res,tsLogRec) => {
+            let len = res->Js_array2.length
+            let prevSum = if (len == 0) {0.0} else {
+                let (_,{sum}) = res[len-1]
+                sum
+            }
+            res->Js_array2.push(
+                (
+                    tsLogRec,
+                    tsCalculateLogRec(
+                        ~tsLogRec,
+                        ~prevSum,
+                        ~regularWorkDurationHrs=regularWorkDurationHrs,
+                        ~regularRatePerHour=regularRatePerHour,
+                        ~overtimeRatePerHour=overtimeRatePerHour,
+                        ~weekendRatePerHour=weekendRatePerHour,
+                    )
+                )
+            )->ignore
+            res
+        },
+        []
+    )
 }

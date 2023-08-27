@@ -31,24 +31,14 @@ describe("tsCalculate", _ => {
         let tsLog = parseTimesheet(tsData)->Belt.Result.getExn
 
         //when
-        let tsCalc = tsLog->Js_array2.reduce(
-            (res,tsLogRec) => {
-                let len = res->Js_array2.length
-                let prevSum = if (len == 0) {0.0} else {res[len-1].sum}
-                res->Js_array2.push(
-                    tsCalculate(
-                        ~tsLogRec,
-                        ~prevSum,
-                        ~regularWorkDurationHrs=8.0,
-                        ~regularRatePerHour=7.0,
-                        ~overtimeRatePerHour=9.0,
-                        ~weekendRatePerHour=11.0,
-                    )
-                )->ignore
-                res
-            },
-            []
-        )
+        let tsCalc = tsCalculate(
+            ~tsLog,
+            ~prevSum = 0.0,
+            ~regularWorkDurationHrs=8.0,
+            ~regularRatePerHour=7.0,
+            ~overtimeRatePerHour=9.0,
+            ~weekendRatePerHour=11.0,
+        )->Js.Array2.map(((_,tsCalc)) => tsCalc)
 
         //then
         assertEq( 

@@ -19,7 +19,7 @@ let dateIsWeekend: date => bool
 let dateToString: date => string
 let minutesToDurStr: int => string
 
-let tsCalculate: (
+let tsCalculateLogRec: (
     ~tsLogRec:tsLogRecord,
     ~prevSum:float,
     ~regularWorkDurationHrs:float,
@@ -27,3 +27,12 @@ let tsCalculate: (
     ~overtimeRatePerHour:float,
     ~weekendRatePerHour:float,
 ) => tsCalc
+
+let tsCalculate: (
+    ~tsLog:array<tsLogRecord>,
+    ~prevSum:float,
+    ~regularWorkDurationHrs:float,
+    ~regularRatePerHour:float,
+    ~overtimeRatePerHour:float,
+    ~weekendRatePerHour:float,
+) => array<(tsLogRecord,tsCalc)>
