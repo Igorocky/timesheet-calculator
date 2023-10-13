@@ -9,13 +9,13 @@ open TS_parser
 
 type state = {
     tsLogText:string,
-    tsLog:option<array<(tsLogRecord,tsCalc)>>,
+    tsCalc:option<array<tsCalc>>,
 }
 
 let makeInitialState = () => {
     {
         tsLogText:"",
-        tsLog:None,
+        tsCalc:None,
     }
 }
 
@@ -23,14 +23,14 @@ let makeInitialState = () => {
 let setLogText = (st, str) => {
     {
         tsLogText:str,
-        tsLog:None,
+        tsCalc:None,
     }
 }
 
-let setLog = (st,arrOpt) => {
+let setTsCalc = (st,arrOpt) => {
     {
         ...st,
-        tsLog:arrOpt,
+        tsCalc:arrOpt,
     }
 }
 
@@ -43,10 +43,10 @@ let make = () => {
     let modalRef = useModalRef()
     let (state, setState) = React.useState(makeInitialState)
 
-    let (regularWorkDurationHrsStr, setRegularWorkDurationHrsStr) = useStateFromLocalStorageStr(
-        ~key=getLocStorKey("regularWorkDurationHrsStr"), ~default=""
+    let (regularWorkDurationMinutesStr, setRegularWorkDurationMinutesStr) = useStateFromLocalStorageStr(
+        ~key=getLocStorKey("regularWorkDurationMinutesStr"), ~default=""
     )
-    let (regularWorkDurationHrsStrErr, setRegularWorkDurationHrsStrErr) = React.useState(() => false)
+    let (regularWorkDurationMinutesStrErr, setRegularWorkDurationMinutesStrErr) = React.useState(() => false)
 
     let (regularRatePerHourStr, setRegularRatePerHourStr) = useStateFromLocalStorageStr(
         ~key=getLocStorKey("regularRatePerHourStr"), ~default=""
@@ -63,9 +63,9 @@ let make = () => {
     )
     let (weekendRatePerHourStrErr, setWeekendRatePerHourStrErr) = React.useState(() => false)
 
-    let actRegularWorkDurationHrsStrChanged = str => {
-        setRegularWorkDurationHrsStr(_ => str)
-        setRegularWorkDurationHrsStrErr(_ => false)
+    let actRegularWorkDurationMinutesStrChanged = str => {
+        setRegularWorkDurationMinutesStr(_ => str)
+        setRegularWorkDurationMinutesStrErr(_ => false)
     }
 
     let actRegularRatePerHourStrChanged = str => {
@@ -87,8 +87,8 @@ let make = () => {
         setState(setLogText(_, str))
     }
     
-    let actTsLogChanged = arrOpt => {
-        setState(setLog(_, arrOpt))
+    let actTsCalcChanged = arrOpt => {
+        setState(setTsCalc(_, arrOpt))
     }
 
     let actCalculate = () => {
@@ -98,14 +98,14 @@ let make = () => {
                 if (tsLog->Js_array2.length == 0) {
                     openInfoDialog(~modalRef, ~text=`The timesheet is empty.`, ())
                 } else {
-                    let regularWorkDurationHrsOpt = regularWorkDurationHrsStr->floatParse
+                    let regularWorkDurationMinutesOpt = regularWorkDurationMinutesStr->durMinutesFromString
                     let regularRatePerHourOpt = regularRatePerHourStr->floatParse
                     let overtimeRatePerHourOpt = overtimeRatePerHourStr->floatParse
                     let weekendRatePerHourOpt = weekendRatePerHourStr->floatParse
                     
                     let hasErr = ref(false)
-                    if (regularWorkDurationHrsOpt->Belt.Option.isNone) {
-                        setRegularWorkDurationHrsStrErr(_ => true)
+                    if (regularWorkDurationMinutesOpt->Belt.Option.isNone) {
+                        setRegularWorkDurationMinutesStrErr(_ => true)
                         hasErr := true
                     }
                     if (regularRatePerHourOpt->Belt.Option.isNone) {
@@ -122,10 +122,10 @@ let make = () => {
                     }
 
                     if (!hasErr.contents) {
-                        actTsLogChanged(Some(
+                        actTsCalcChanged(Some(
                             tsCalculate(
                                 ~tsLog,
-                                ~regularWorkDurationHrs=regularWorkDurationHrsOpt->Belt.Option.getExn,
+                                ~regularWorkDurationMinutes=regularWorkDurationMinutesOpt->Belt.Option.getExn,
                                 ~regularRatePerHour=regularRatePerHourOpt->Belt.Option.getExn,
                                 ~overtimeRatePerHour=overtimeRatePerHourOpt->Belt.Option.getExn,
                                 ~weekendRatePerHour=weekendRatePerHourOpt->Belt.Option.getExn,
@@ -138,7 +138,7 @@ let make = () => {
     }
 
     let rndParam = (~name:string, ~value:string, ~error:bool, ~onChange:string=>unit) => {
-        switch state.tsLog {
+        switch state.tsCalc {
             | None => {
                 <TextField
                     label=name
@@ -159,7 +159,7 @@ let make = () => {
     }
 
     let rndParams = () => {
-        let display = switch state.tsLog {
+        let display = switch state.tsCalc {
             | None => Some("none")
             | Some(_) => None
         }
@@ -170,10 +170,10 @@ let make = () => {
         <Row>
             {
                 rndParam(
-                    ~name="Regular work duration, hours", 
-                    ~value=regularWorkDurationHrsStr, 
-                    ~onChange=actRegularWorkDurationHrsStrChanged,
-                    ~error=regularWorkDurationHrsStrErr,
+                    ~name="Regular work duration, h:m", 
+                    ~value=regularWorkDurationMinutesStr, 
+                    ~onChange=actRegularWorkDurationMinutesStrChanged,
+                    ~error=regularWorkDurationMinutesStrErr,
                 )
             }
             delimeter
@@ -207,7 +207,7 @@ let make = () => {
     }
 
     let rndContent = () => {
-        switch state.tsLog {
+        switch state.tsCalc {
             | None => {
                 <Col>
                     {rndParams()}
@@ -224,25 +224,21 @@ let make = () => {
                     <Button onClick={_=>actCalculate()} variant=#contained > {React.string("Calculate")} </Button>
                 </Col>
             }
-            | Some(tsLog) => {
-                let (
-                    (regularDur,regularMnt), 
-                    (overtimeDur,overtimeMnt), 
-                    (weekendDur,weekendMnt)
-                ) = sumTimesByTypeForLog(tsLog)
+            | Some(tsCalc) => {
+                let last = tsCalc[tsCalc->Js.Array2.length-1]
                 <Col>
-                    <Button onClick={_=>actTsLogChanged(None)} variant=#contained > {React.string("Edit")} </Button>
+                    <Button onClick={_=>actTsCalcChanged(None)} variant=#contained > {React.string("Edit")} </Button>
                     {rndParams()}
                     {
                         rndStaticTable(
                             ~header=["Date", "Type of day", "Amount", "Sum", "Calculation"],
-                            ~data=tsLog->Js_array2.map(((logRec,calcData)) => {
+                            ~data=tsCalc->Js_array2.map(calcData => {
                                 [
-                                    logRec.date->dateToString,
-                                    if (logRec.date->dateIsWeekend) { "weekend" } else { "" },
+                                    calcData.date->dateToString,
+                                    if (calcData.date->dateIsWeekend) { "weekend" } else { "" },
                                     calcData.amount->floatToCurrencyStr,
-                                    calcData.sum->floatToCurrencyStr,
-                                    calcData.formula
+                                    calcData.amountSum->floatToCurrencyStr,
+                                    calcData.amountFormula
                                 ]
                             })
                         )
@@ -251,13 +247,19 @@ let make = () => {
                         rndStaticTable(
                             ~header=["Work type", "Duration", "Amount"],
                             ~data=[
-                                ["Regular", regularDur->minutesToDurStr, regularMnt->floatToCurrencyStr],
                                 [
-                                    "Additional", 
-                                    (overtimeDur+weekendDur)->minutesToDurStr 
-                                        ++ ` (overtime ${overtimeDur->minutesToDurStr}, weekend ${weekendDur->minutesToDurStr})`,
-                                    (overtimeMnt +. weekendMnt)->floatToCurrencyStr
-                                        ++ ` (overtime ${overtimeMnt->floatToCurrencyStr}, weekend ${weekendMnt->floatToCurrencyStr})`,
+                                    "Regular", 
+                                    last.regularDurMinutesSum->minutesToDurStr, 
+                                    last.regularAmountSum->floatToCurrencyStr
+                                ],
+                                [
+                                    "Over", 
+                                    (last.overtimeDurMinutesSum+last.weekendDurMinutesSum)->minutesToDurStr 
+                                        ++ ` (overtime ${last.overtimeDurMinutesSum->minutesToDurStr}, ` 
+                                        ++ `weekend ${last.weekendDurMinutesSum->minutesToDurStr})`,
+                                    (last.overtimeAmountSum +. last.weekendAmountSum)->floatToCurrencyStr
+                                        ++ ` (overtime ${last.overtimeAmountSum->floatToCurrencyStr}, ` 
+                                        ++ `weekend ${last.weekendAmountSum->floatToCurrencyStr})`,
                                 ],
                             ]
                         )
@@ -268,7 +270,15 @@ let make = () => {
                                 {React.string(`Total time: `)}
                             </span>
                             <span>
-                                {React.string((regularDur+overtimeDur+weekendDur)->minutesToDurStr)}
+                                {
+                                    React.string(
+                                        (
+                                            last.regularDurMinutesSum
+                                            +last.overtimeDurMinutesSum
+                                            +last.weekendDurMinutesSum
+                                        )->minutesToDurStr
+                                    )
+                                }
                             </span>
                         </span>
                     }
@@ -278,7 +288,15 @@ let make = () => {
                                 {React.string(`Total amount: `)}
                             </span>
                             <span>
-                                {React.string((regularMnt +. overtimeMnt +. weekendMnt)->floatToCurrencyStr)}
+                                {
+                                    React.string(
+                                        (
+                                            last.regularAmountSum 
+                                            +. last.overtimeAmountSum 
+                                            +. last.weekendAmountSum
+                                        )->floatToCurrencyStr
+                                    )
+                                }
                             </span>
                         </span>
                     }

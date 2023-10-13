@@ -5,39 +5,23 @@ type tsLogRecord = {
     durMinutes: int,
 }
 
-type timeTypeCalcData = {
-    durMinutes:int, 
-    amount:float, 
-    formula:string,
-}
-
-type timeType =
-    | Regular(timeTypeCalcData)
-    | Overtime(timeTypeCalcData)
-    | Weekend(timeTypeCalcData)
-
 type tsCalc = {
-    times:array<timeType>,
+    date: date,
     amount:float,
-    formula:string,
-    sum:float,
+    amountSum:float,
+    amountFormula:string,
+    regularDurMinutesSum:int,
+    regularAmountSum:float,
+    overtimeDurMinutesSum:int,
+    overtimeAmountSum:float,
+    weekendDurMinutesSum:int,
+    weekendAmountSum:float,
 }
-
-let tsCalculateLogRec: (
-    ~tsLogRec:tsLogRecord,
-    ~prevSum:float,
-    ~regularWorkDurationHrs:float,
-    ~regularRatePerHour:float,
-    ~overtimeRatePerHour:float,
-    ~weekendRatePerHour:float,
-) => tsCalc
 
 let tsCalculate: (
     ~tsLog:array<tsLogRecord>,
-    ~regularWorkDurationHrs:float,
+    ~regularWorkDurationMinutes:int,
     ~regularRatePerHour:float,
     ~overtimeRatePerHour:float,
     ~weekendRatePerHour:float,
-) => array<(tsLogRecord,tsCalc)>
-
-let sumTimesByTypeForLog: array<(tsLogRecord,tsCalc)> => ((int,float),(int,float),(int,float))
+) => array<tsCalc>
