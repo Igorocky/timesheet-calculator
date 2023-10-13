@@ -1,8 +1,4 @@
-type date = {
-    year: int, 
-    month: int, 
-    day: int
-}
+open TS_common
 
 type tsLogRecord = {
     date: date,
@@ -26,10 +22,6 @@ type tsCalc = {
     formula:string,
     sum:float,
 }
-
-let dateIsWeekend: date => bool
-let dateToString: date => string
-let minutesToDurStr: int => string
 
 let tsCalculateLogRec: (
     ~tsLogRec:tsLogRecord,

@@ -1,6 +1,7 @@
 open Expln_test
 open TS_model
 open TS_parser
+open TS_common
 
 describe("dateIsWeekend", _ => {
     it("returns correct results", _ => {
