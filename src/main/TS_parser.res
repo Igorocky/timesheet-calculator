@@ -1,6 +1,31 @@
 open TS_common
 open TS_model
 
+let durRegex = %re("/^(\d+)(:(\d+))?$/")
+
+let durMinutesFromString = (str:string):option<int> => {
+    switch durRegex->Js.Re.exec_(str) {
+        | None => None
+        | Some(match) => {
+            let captures = match->Js_re.captures
+            if (captures->Js.Array2.length != 4) {
+                None
+            } else {
+                let partsStr = captures->Js.Array2.map(strNull => strNull->Js.Nullable.toOption)
+                switch partsStr[1]->Belt_Option.flatMap(Belt_Int.fromString) {
+                    | None => None
+                    | Some(hours) => {
+                        switch partsStr[3]->Belt_Option.flatMap(Belt_Int.fromString) {
+                            | None => Some(hours*60)
+                            | Some(minutes) => Some(hours*60+minutes)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 let dateRegex = %re("/^(\d{4})-(\d{2})-(\d{2})$/")
 
 let dateFromString = (str:string):option<date> => {

@@ -2,6 +2,15 @@ open Expln_test
 open TS_model
 open TS_parser
 
+describe("durMinutesFromString", _ => {
+    it("returnes results as expected", _ => {
+        assertEq( durMinutesFromString("1:1"), Some(61))
+        assertEq( durMinutesFromString("1:0"), Some(60))
+        assertEq( durMinutesFromString("1"), Some(60))
+        assertEq( durMinutesFromString("1.4"), None)
+    })
+})
+
 describe("parseTimeSheet", _ => {
     it("parses with header", _ => {
         //given
